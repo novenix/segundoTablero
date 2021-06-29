@@ -4,27 +4,25 @@ class Editor extends React.Component {
             <div>
                 <h1>Hello, {this.props.name}</h1>
                 <hr/>
-                <div id="toolstatus"></div>
+                <div id="toolstatus"/>
                 <hr/>
-                <div id="container"></div>
-                <BBCanvas/>
+                <div id="container"/>
+                <WBCanvas/>
                 <hr/>
-                <div id="info"></div>
+                <div id="info"/>
             </div>
         );
     }
 }
 
-class BBCanvas extends React.Component {
+class WBCanvas extends React.Component {
     constructor(props) {
         super(props);
-        this.comunicationWS = this.comunicationWS =
-            new WSBBChannel(BBServiceURL(), new WSBBChannel(BBServiceURL(),
-                (msg) => { (msg) => {
-                    var obj = JSON.parse(msg); var obj = JSON.parse(msg);
-                    console.log("On func call back ", msg); console.log("On func call back ", msg);
-                    this.drawPoint(obj.x, obj.y); this.drawPoint(obj.x, obj.y);
-                }}));
+        this.comunicationWS = new WSBBChannel(WBServiceURL(), (msg) => {
+            const obj = JSON.parse(msg);
+            console.log("On func call back ", msg);
+            this.drawPoint(obj.x, obj.y);
+        });
         this.myp5 = null;
         this.state = {loadingState: 'Loading Canvas ...'}
         let wsreference = this.comunicationWS;
@@ -38,7 +36,7 @@ class BBCanvas extends React.Component {
                 if (p.mouseIsPressed === true) {
                     p.fill(0, 0, 0);
                     p.ellipse(p.mouseX, p.mouseY, 20, 20);
-                    wsreference.send(p.mouseX, p.mouseY); wsreference.send(p.mouseX, p.mouseY);
+                    wsreference.send(p.mouseX, p.mouseY);
                 }
                 if (p.mouseIsPressed === false) {
                     p.fill(255, 255, 255);
@@ -46,12 +44,9 @@ class BBCanvas extends React.Component {
             };
         }
     }
-    drawPoint(x, y) { drawPoint(x, y)
-        {
-            this.myp5.ellipse(x, y, 20, 20)
-        }
+    drawPoint(x, y){
+        this.myp5.ellipse(x, y, 20, 20);
     }
-
     componentDidMount() {
         this.myp5 = new p5(this.sketch, 'container');
         this.setState({loadingState: 'Canvas Loaded'});
@@ -65,17 +60,13 @@ class BBCanvas extends React.Component {
     }
 }
 
-function BBServiceURL() {
-    return 'ws://localhost:8080/bbService';
+function WBServiceURL() {
+    return 'ws://localhost:8080/wbService';
 }
-ReactDOM.render(
-    <Editor name="Nicolas"/>,
-    document.getElementById('root')
-);
 class WSBBChannel {
     constructor(URL, callback) {
         this.URL = URL;
-        this.wsocket = new WebSocket(URL);
+        this.wsocket = new WebSocket(this.URL);
         this.wsocket.onopen = (evt) => this.onOpen(evt);
         this.wsocket.onmessage = (evt) => this.onMessage(evt);
         this.wsocket.onerror = (evt) => this.onError(evt);
@@ -86,12 +77,10 @@ class WSBBChannel {
     }
     onMessage(evt) {
         console.log("In onMessage", evt);
-        // Este if permite que el primer mensaje del servidor no se tenga en
-        //cuenta.
-            // El primer mensaje solo confirma que se estableció la conexión.
-            // De ahí en adelante intercambiaremos solo puntos(x,y) con el servidor
-            if (evt.data != "Connection established."){
-
+        // Este if permite que el primer mensaje del servidor no se tenga en cuenta.
+        // El primer mensaje solo confirma que se estableció la conexión.
+        // De ahí en adelante intercambiaremos solo puntos(x,y) con el servidor
+        if (evt.data !== "Connection established.") {
             this.receivef(evt.data);
         }
     }
@@ -104,3 +93,8 @@ class WSBBChannel {
         this.wsocket.send(msg);
     }
 }
+
+ReactDOM.render(
+    <Editor name="Daniel"/>,
+    document.getElementById('root')
+);
